@@ -1,50 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    const where = status ? { status } : {};
-    const items = await prisma.contentItem.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    let query = supabase
+      .from("content_queue")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    return NextResponse.json(items);
+    if (status && status !== "ALL") {
+      query = query.eq("status", status);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return NextResponse.json(data || []);
   } catch (error) {
     console.error("Content API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch content" },
-      { status: 500 }
-    );
+    return NextResponse.json([], { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { data, error } = await supabase
+      .from("content_queue")
+      .insert({
+        content_type: body.content_type || "POST",
+        caption: body.caption,
+        hashtags: body.hashtags || "",
+        suggested_media_prompt: body.suggested_media_prompt || "",
+        media_url: body.media_url || "",
+        scheduled_for: body.scheduled_for || null,
+        status: body.status || "PENDING_APPROVAL",
+        performance_reasoning: body.performance_reasoning || "",
+        account_id: body.account_id || null,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Content create error:", error);
+    return NextResponse.json({ error: "Failed to create content" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, status } = body;
+    const { id, ...updates } = body;
 
-    if (!id || !status) {
-      return NextResponse.json(
-        { error: "Missing id or status" },
-        { status: 400 }
-      );
-    }
+    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (updates.status) updateData.status = updates.status;
+    if (updates.caption) updateData.caption = updates.caption;
+    if (updates.scheduled_for) updateData.scheduled_for = updates.scheduled_for;
+    if (updates.media_url) updateData.media_url = updates.media_url;
 
-    const updated = await prisma.contentItem.update({
-      where: { id },
-      data: { status },
-    });
+    const { data, error } = await supabase
+      .from("content_queue")
+      .update(updateData)
+      .eq("id", id)
+      .select()
+      .single();
 
-    return NextResponse.json(updated);
+    if (error) throw error;
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Content PATCH error:", error);
-    return NextResponse.json(
-      { error: "Failed to update content" },
-      { status: 500 }
-    );
+    console.error("Content update error:", error);
+    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
   }
 }

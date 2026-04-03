@@ -8,6 +8,12 @@ interface Stats {
   approvedContent: number;
   totalLeads: number;
   newLeads: number;
+  igConnected: boolean;
+  igFollowers: number;
+  igPosts: number;
+  igUsername: string | null;
+  waCampaigns: number;
+  emailCampaigns: number;
 }
 
 export default function DashboardPage() {
@@ -21,31 +27,40 @@ export default function DashboardPage() {
       .catch(console.error);
   }, []);
 
-  const statCards = [
+  const channels = [
     {
-      label: "Pending Approvals",
-      value: stats?.pendingContent ?? "—",
-      icon: "⏳",
-      color: "amber",
+      name: "Instagram",
+      icon: "📸",
+      connected: stats?.igConnected,
+      stats: stats?.igConnected
+        ? `${(stats?.igFollowers ?? 0).toLocaleString()} followers · ${stats?.igPosts ?? 0} posts`
+        : "Not connected",
+      href: "/dashboard/instagram",
+      color: "#E1306C",
     },
     {
-      label: "Approved Content",
-      value: stats?.approvedContent ?? "—",
-      icon: "✅",
-      color: "emerald",
+      name: "WhatsApp Business",
+      icon: "💬",
+      connected: false,
+      stats: stats?.waCampaigns ? `${stats.waCampaigns} campaigns` : "Not connected",
+      href: "/dashboard/whatsapp",
+      color: "#25D366",
     },
     {
-      label: "Total Leads",
-      value: stats?.totalLeads ?? "—",
-      icon: "👥",
-      color: "blue",
+      name: "Email Marketing",
+      icon: "✉️",
+      connected: false,
+      stats: stats?.emailCampaigns ? `${stats.emailCampaigns} campaigns` : "Not configured",
+      href: "/dashboard/email",
+      color: "#4F46E5",
     },
-    {
-      label: "New Leads",
-      value: stats?.newLeads ?? "—",
-      icon: "🔥",
-      color: "rose",
-    },
+  ];
+
+  const quickStats = [
+    { label: "AI Content Queue", value: stats?.pendingContent ?? "—", icon: "🤖", sublabel: "Pending approval", href: "/dashboard/content" },
+    { label: "Approved Content", value: stats?.approvedContent ?? "—", icon: "✅", sublabel: "Ready to publish" },
+    { label: "Total Leads", value: stats?.totalLeads ?? "—", icon: "👥", sublabel: "All channels", href: "/dashboard/leads" },
+    { label: "New Leads", value: stats?.newLeads ?? "—", icon: "🔥", sublabel: "Needs attention" },
   ];
 
   return (
@@ -56,7 +71,7 @@ export default function DashboardPage() {
             Welcome back, {session?.user?.name?.split(" ")[0] || "Admin"}
           </h1>
           <p className="page-subtitle">
-            Here&apos;s what&apos;s happening across your marketing ecosystem
+            Your marketing command center — all channels, one view.
           </p>
         </div>
         <div className="page-header-badge">
@@ -65,46 +80,39 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        {statCards.map((card) => (
-          <div key={card.label} className={`stat-card stat-card-${card.color}`}>
-            <div className="stat-card-icon">{card.icon}</div>
-            <div className="stat-card-info">
-              <span className="stat-card-value">{card.value}</span>
-              <span className="stat-card-label">{card.label}</span>
+      {/* Channel Cards */}
+      <div className="section-header" style={{ marginBottom: 12 }}>
+        <h2 className="section-title">Channels</h2>
+      </div>
+      <div className="channels-grid">
+        {channels.map((ch) => (
+          <a key={ch.name} href={ch.href} className="channel-card">
+            <div className="channel-card-top">
+              <span className="channel-card-icon">{ch.icon}</span>
+              <span className={`channel-status ${ch.connected ? "channel-status-active" : ""}`}>
+                {ch.connected ? "Connected" : "Setup"}
+              </span>
             </div>
-          </div>
+            <h3 className="channel-card-name">{ch.name}</h3>
+            <p className="channel-card-stats">{ch.stats}</p>
+          </a>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="section-header">
-        <h2 className="section-title">Quick Actions</h2>
+      {/* Quick Stats */}
+      <div className="section-header" style={{ marginTop: 32, marginBottom: 12 }}>
+        <h2 className="section-title">Overview</h2>
       </div>
-      <div className="quick-actions">
-        <a href="/dashboard/content" className="quick-action-card">
-          <div className="quick-action-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M9 12l2 2 4-4" />
-              <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-            </svg>
-          </div>
-          <span className="quick-action-label">Review Content</span>
-          <span className="quick-action-desc">Approve or reject pending posts</span>
-        </a>
-        <a href="/dashboard/leads" className="quick-action-card">
-          <div className="quick-action-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <span className="quick-action-label">Manage Leads</span>
-          <span className="quick-action-desc">Track and convert incoming leads</span>
-        </a>
+      <div className="stats-grid">
+        {quickStats.map((s) => (
+          <a key={s.label} href={s.href || "#"} className="stat-card" style={{ textDecoration: "none" }}>
+            <div className="stat-card-icon">{s.icon}</div>
+            <div className="stat-card-info">
+              <span className="stat-card-value">{s.value}</span>
+              <span className="stat-card-label">{s.label}</span>
+            </div>
+          </a>
+        ))}
       </div>
     </div>
   );

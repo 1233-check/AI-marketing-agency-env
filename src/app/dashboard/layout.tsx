@@ -18,17 +18,50 @@ const navItems = [
     ),
   },
   {
-    name: "Content Approvals",
-    href: "/dashboard/content",
+    name: "Instagram",
+    href: "/dashboard/instagram",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 12l2 2 4-4" />
-        <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+        <rect x="2" y="2" width="20" height="20" rx="5" />
+        <circle cx="12" cy="12" r="5" />
+        <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none" />
       </svg>
     ),
   },
   {
-    name: "Lead Tracking",
+    name: "Content AI",
+    href: "/dashboard/content",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93" />
+        <path d="M8.56 9.8A4 4 0 1 1 15.56 12" />
+        <path d="M12 18v4" /><path d="M8 22h8" />
+        <circle cx="12" cy="12" r="2" />
+      </svg>
+    ),
+  },
+  {
+    name: "WhatsApp",
+    href: "/dashboard/whatsapp",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21" />
+        <path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1" />
+      </svg>
+    ),
+  },
+  {
+    name: "Email",
+    href: "/dashboard/email",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <polyline points="22,4 12,13 2,4" />
+      </svg>
+    ),
+  },
+  {
+    name: "Leads",
     href: "/dashboard/leads",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -58,9 +91,7 @@ export default function DashboardLayout({
 
   return (
     <div className="dashboard-shell">
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-        {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-logo">
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,15 +103,14 @@ export default function DashboardLayout({
           {!sidebarCollapsed && (
             <div className="sidebar-brand-text">
               <span className="sidebar-brand-name">C&D</span>
-              <span className="sidebar-brand-sub">Ecosystem</span>
+              <span className="sidebar-brand-sub">Marketing Hub</span>
             </div>
           )}
         </div>
 
-        {/* Navigation */}
         <nav className="sidebar-nav">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <a
@@ -97,7 +127,6 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        {/* Collapse toggle */}
         <button
           className="sidebar-toggle"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -109,7 +138,6 @@ export default function DashboardLayout({
           </svg>
         </button>
 
-        {/* User section */}
         <div className="sidebar-user">
           <div className="sidebar-user-avatar">
             {session?.user?.name?.charAt(0) || "A"}
@@ -134,7 +162,6 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="dashboard-main">
         <div className="dashboard-content">
           {children}
