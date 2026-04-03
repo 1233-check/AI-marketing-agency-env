@@ -1032,6 +1032,78 @@ button, input, select, textarea {
   line-height: 1.5;
 }
 
+/* ── Google Drive Connect ── */
+.drive-connect-section,
+.drive-connected-section {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.drive-connected-section { border-style: solid; border-color: var(--success); background: rgba(22,163,74,0.04); }
+
+.drive-connect-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.drive-connect-info { display: flex; align-items: center; gap: 12px; }
+.drive-connect-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.drive-connect-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.drive-setup-form {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.drive-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.drive-form-field { display: flex; flex-direction: column; gap: 4px; }
+.drive-form-hint { font-size: 11px; color: var(--text-muted); }
+
+.drive-form-actions { margin-top: 20px; display: flex; justify-content: flex-end; }
+
+.drive-file-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.drive-file-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.drive-file-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .drive-form-grid { grid-template-columns: 1fr; }
+  .drive-connect-header { flex-direction: column; align-items: flex-start; }
+}
+
 /* ── Badges ── */
 .badge {
   display: inline-block;

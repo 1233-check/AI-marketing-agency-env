@@ -29,6 +29,10 @@ export default function ContentPage() {
   const [generating, setGenerating] = useState(false);
   const [genResult, setGenResult] = useState<string | null>(null);
   const [driveStatus, setDriveStatus] = useState<DriveStatus>({ configured: false, fileCount: 0 });
+  const [showDriveSetup, setShowDriveSetup] = useState(false);
+  const [driveForm, setDriveForm] = useState({ folderId: "", clientId: "", clientSecret: "", refreshToken: "" });
+  const [driveSaving, setDriveSaving] = useState(false);
+  const [driveFiles, setDriveFiles] = useState<{ id: string; name: string; type: string }[]>([]);
 
   const fetchItems = async () => {
     try {
@@ -49,6 +53,9 @@ export default function ContentPage() {
         fileCount: data.files?.length || 0,
         error: data.error,
       });
+      if (data.files?.length) {
+        setDriveFiles(data.files.slice(0, 8));
+      }
     } catch {
       setDriveStatus({ configured: false, fileCount: 0 });
     }
@@ -93,6 +100,29 @@ export default function ContentPage() {
       setGenResult(`❌ Error: ${String(e)}`);
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const saveDriveConfig = async () => {
+    setDriveSaving(true);
+    try {
+      const res = await fetch("/api/drive/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(driveForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDriveStatus({ configured: true, fileCount: data.fileCount || 0 });
+        setShowDriveSetup(false);
+        if (data.files?.length) setDriveFiles(data.files.slice(0, 8));
+      } else {
+        alert(data.error || "Failed to connect Google Drive");
+      }
+    } catch (e) {
+      alert(`Error: ${String(e)}`);
+    } finally {
+      setDriveSaving(false);
     }
   };
 
@@ -158,11 +188,115 @@ export default function ContentPage() {
             {genResult}
           </div>
         )}
-        {!driveStatus.configured && (
-          <div className="engine-note">
-            <strong>💡 Tip:</strong> Connect Google Drive to pair AI-generated captions with your rendered videos and images.
-            Add <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>, <code>GOOGLE_OAUTH_REFRESH_TOKEN</code>, 
-            and <code>GOOGLE_DRIVE_MEDIA_FOLDER_ID</code> to your <code>.env</code> file.
+
+        {/* Google Drive Connection Section */}
+        {!driveStatus.configured ? (
+          <div className="drive-connect-section">
+            <div className="drive-connect-header">
+              <div className="drive-connect-info">
+                <span style={{ fontSize: 20 }}>📁</span>
+                <div>
+                  <h4 className="drive-connect-title">Connect Google Drive</h4>
+                  <p className="drive-connect-desc">
+                    Link your Drive folder to pair rendered videos & images with AI-generated content
+                  </p>
+                </div>
+              </div>
+              <button
+                className="action-btn action-btn-generate"
+                onClick={() => setShowDriveSetup(!showDriveSetup)}
+                style={{ background: showDriveSetup ? "var(--text-muted)" : undefined }}
+              >
+                {showDriveSetup ? "Cancel" : "⚙️ Setup Connection"}
+              </button>
+            </div>
+
+            {showDriveSetup && (
+              <div className="drive-setup-form">
+                <div className="drive-form-grid">
+                  <div className="drive-form-field">
+                    <label className="login-label">Google Drive Folder ID</label>
+                    <input
+                      className="login-input"
+                      type="text"
+                      placeholder="e.g. 1AbCd2EfGhIj3KlMnOpQr"
+                      value={driveForm.folderId}
+                      onChange={(e) => setDriveForm({ ...driveForm, folderId: e.target.value })}
+                    />
+                    <span className="drive-form-hint">Found in your Google Drive folder URL after /folders/</span>
+                  </div>
+                  <div className="drive-form-field">
+                    <label className="login-label">Google Client ID</label>
+                    <input
+                      className="login-input"
+                      type="text"
+                      placeholder="xxxxxxxx.apps.googleusercontent.com"
+                      value={driveForm.clientId}
+                      onChange={(e) => setDriveForm({ ...driveForm, clientId: e.target.value })}
+                    />
+                  </div>
+                  <div className="drive-form-field">
+                    <label className="login-label">Google Client Secret</label>
+                    <input
+                      className="login-input"
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={driveForm.clientSecret}
+                      onChange={(e) => setDriveForm({ ...driveForm, clientSecret: e.target.value })}
+                    />
+                  </div>
+                  <div className="drive-form-field">
+                    <label className="login-label">OAuth Refresh Token</label>
+                    <input
+                      className="login-input"
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={driveForm.refreshToken}
+                      onChange={(e) => setDriveForm({ ...driveForm, refreshToken: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="drive-form-actions">
+                  <button
+                    className="action-btn action-btn-generate"
+                    onClick={saveDriveConfig}
+                    disabled={driveSaving || !driveForm.folderId}
+                  >
+                    {driveSaving ? "Connecting..." : "🔗 Connect Google Drive"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="drive-connected-section">
+            <div className="drive-connect-header">
+              <div className="drive-connect-info">
+                <span style={{ fontSize: 20 }}>✅</span>
+                <div>
+                  <h4 className="drive-connect-title">Google Drive Connected</h4>
+                  <p className="drive-connect-desc">
+                    {driveStatus.fileCount} media files available for content pairing
+                  </p>
+                </div>
+              </div>
+              <button
+                className="filter-btn"
+                onClick={() => checkDriveStatus()}
+              >
+                🔄 Refresh
+              </button>
+            </div>
+            {driveFiles.length > 0 && (
+              <div className="drive-file-preview">
+                {driveFiles.map((f) => (
+                  <div key={f.id} className="drive-file-chip">
+                    <span>{f.type === "VIDEO" ? "🎬" : "🖼️"}</span>
+                    <span className="drive-file-name">{f.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
