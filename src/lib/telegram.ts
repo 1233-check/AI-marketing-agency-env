@@ -2,7 +2,7 @@
  * Telegram Watchdog Alert Module
  * Used to report third-party API failures to the admin.
  */
-export async function sendTelegramAlert(message: string, error?: any) {
+export async function sendTelegramAlert(message: string, error?: unknown) {
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -15,18 +15,16 @@ export async function sendTelegramAlert(message: string, error?: any) {
   const errorMessage = error instanceof Error ? error.message : String(error || "");
   const stack = error instanceof Error ? error.stack : "";
   
-  const text = \`[C&D Ecosystem Alert] 🚨
+  const text = `[C&D Ecosystem Alert] 🚨
   
-**Message:** \${message}
+**Message:** ${message}
 
-\${errorMessage ? \`**Error:** \${errorMessage}\` : ""}
+${errorMessage ? `**Error:** ${errorMessage}` : ""}
 
-\${stack ? \`\`\`
-\${stack.substring(0, 500)}...\`\`\` : ""}
-\`;
+${stack ? "```\n" + stack.substring(0, 500) + "...\n```" : ""}`;
 
   try {
-    const response = await fetch(\`https://api.telegram.org/bot\${botToken}/sendMessage\`, {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
