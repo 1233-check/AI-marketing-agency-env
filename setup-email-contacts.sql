@@ -1,8 +1,19 @@
 -- ============================================================
--- Email Contacts Table for Concepts & Design
+-- Email Contacts + Templates Tables for Concepts & Design
 -- Run in Supabase SQL Editor
 -- ============================================================
 
+-- 0. EMAIL TEMPLATES TABLE
+CREATE TABLE IF NOT EXISTS email_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  html_body TEXT NOT NULL DEFAULT '',
+  from_name TEXT NOT NULL DEFAULT 'Concepts & Design',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 1. EMAIL CONTACTS TABLE
 CREATE TABLE IF NOT EXISTS email_contacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL DEFAULT '',
@@ -24,5 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_email_contacts_subscribed ON email_contacts(subsc
 CREATE INDEX IF NOT EXISTS idx_email_contacts_source ON email_contacts(source);
 
 -- RLS
+ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_contacts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role full access" ON email_templates FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON email_contacts FOR ALL USING (true) WITH CHECK (true);
